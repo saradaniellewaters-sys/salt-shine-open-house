@@ -519,6 +519,20 @@
   body.public-view .main { padding: 1.25rem 0.75rem 2rem; }
   body.public-view .phone-frame { max-width: 480px; border-radius: 18px; }
 
+  /* Public QR pages should never show the admin editing cards. */
+  body.public-view #panel-property .admin-only,
+  body.public-view #panel-setup,
+  body.public-view #panel-crm { display: none !important; }
+  body.public-view #panel-property .card {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+  }
+  body.public-view #panel-property .card-title,
+  body.public-view #panel-property .card-sub { display: none !important; }
+
 </style>
 </head>
 <body>
@@ -781,7 +795,7 @@
   <div class="main">
 
     <!-- Setup section -->
-    <div class="card">
+    <div class="card admin-only">
       <div class="card-title">✏️ Property Description</div>
       <div class="card-sub">Add or edit details for the buyer landing page below</div>
       <div class="form-grid">
