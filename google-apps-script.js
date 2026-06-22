@@ -1,9 +1,9 @@
 /**
- * Salt & Shine Co. Open House Lead Capture → Google Sheets
+ * Salt & Shine Co. Open House Lead Capture â†’ Google Sheets
  *
  * How to use:
  * 1) Create a Google Sheet named something like "Salt & Shine Leads".
- * 2) In the Sheet, go to Extensions → Apps Script.
+ * 2) In the Sheet, go to Extensions â†’ Apps Script.
  * 3) Delete any starter code and paste this entire file.
  * 4) Optional: set REQUIRED_SECRET to the same secret you enter in the website setup.
  * 5) Run setupSheet once, approve permissions, then deploy as a Web App.
