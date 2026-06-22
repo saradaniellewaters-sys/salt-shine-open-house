@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salt & Shine Co. — Open House Tools</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --sand: #F0EBE1;
+    --dune: #D9CFC0;
+    --ocean: #2C5F6E;
+    --seafoam: #5B9BAA;
+    --coral: #C97B5A;
+    --ink: #1A1A1A;
+    --mist: #F7F4F0;
+    --white: #FFFFFF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--mist);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--ocean);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(44,95,110,0.18);
+  }
+  .brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: var(--sand);
+    letter-spacing: 0.08em;
+    font-style: italic;
+  }
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .tab-btn {
+    background: transparent;
+    border: 1px solid rgba(240,235,225,0.3);
+    color: var(--sand);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover, .tab-btn.active {
+    background: var(--coral);
+    border-color: var(--coral);
+    color: white;
+  }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── HERO STRIP ── */
+  .hero {
+    background: linear-gradient(135deg, var(--ocean) 0%, var(--seafoam) 100%);
+    padding: 2.5rem 2rem 2rem;
+    color: white;
+  }
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.4rem;
+  }
+  .hero p {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    font-weight: 300;
+    max-width: 480px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid var(--dune);
+  }
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: var(--ocean);
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .card-sub {
+    font-size: 0.78rem;
+    color: #888;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── FORM ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+  .form-group.full { grid-column: 1 / -1; }
+  label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ocean);
+  }
+  input, select, textarea {
+    border: 1px solid var(--dune);
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    color: var(--ink);
+    background: var(--mist);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--seafoam);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(91,155,170,0.12);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 0.75rem 1.8rem;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--ocean);
+    color: white;
+  }
+  .btn-primary:hover { background: var(--seafoam); transform: translateY(-1px); }
+  .btn-coral {
+    background: var(--coral);
+    color: white;
+  }
+  .btn-coral:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--ocean);
+    color: var(--ocean);
+  }
+  .btn-outline:hover { background: var(--ocean); color: white; }
+  .btn-sm {
+    padding: 0.45rem 1rem;
+    font-size: 0.75rem;
+  }
+  .btn-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 1.5rem;
+  }
+
+  /* ── QR SECTION ── */
+  .qr-area {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .qr-box {
+    background: white;
+    border: 1.5px solid var(--dune);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    min-width: 180px;
+  }
+  .qr-box canvas, .qr-box img { border-radius: 6px; }
+  .qr-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ocean);
+    margin-top: 0.75rem;
+  }
+  .qr-info { flex: 1; min-width: 240px; }
+  .qr-info p {
+    font-size: 0.84rem;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 1rem;
+  }
+  .url-pill {
+    background: var(--mist);
+    border: 1px solid var(--dune);
+    border-radius: 6px;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.78rem;
+    font-family: monospace;
+    color: var(--ocean);
+    word-break: break-all;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  /* ── SETUP FORM ── */
+  .setup-section {
+    background: var(--sand);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--dune);
+  }
+  .setup-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ocean);
+    margin-bottom: 1rem;
+  }
+
+  /* ── CRM TABLE ── */
+  .crm-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .crm-search {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.55rem 1rem;
+    border: 1px solid var(--dune);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-family: 'Inter', sans-serif;
+    background: var(--mist);
+    outline: none;
+  }
+  .crm-search:focus { border-color: var(--seafoam); }
+  .crm-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat-box {
+    background: var(--sand);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid var(--dune);
+  }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--ocean);
+    line-height: 1;
+  }
+  .stat-lbl {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #888;
+    margin-top: 0.2rem;
+  }
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  thead th {
+    background: var(--ocean);
+    color: white;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--dune);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: var(--mist); }
+  td {
+    padding: 0.75rem 1rem;
+    color: var(--ink);
+    vertical-align: top;
+  }
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.67rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .badge-hot { background: #FDECEA; color: #C0392B; }
+  .badge-warm { background: #FEF3E2; color: #D4820B; }
+  .badge-cool { background: #E8F4FD; color: #2471A3; }
+  .badge-pre { background: #EAF7EA; color: #1E8449; }
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #aaa;
+  }
+  .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .empty-state p { font-size: 0.85rem; }
+
+  /* ── PROPERTY SETUP ── */
+  .prop-preview {
+    background: linear-gradient(135deg, var(--ocean), var(--seafoam));
+    border-radius: 12px;
+    padding: 2rem;
+    color: white;
+    margin-top: 1.5rem;
+  }
+  .prop-preview h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 300;
+    margin-bottom: 0.25rem;
+  }
+  .prop-preview .address {
+    font-size: 0.82rem;
+    opacity: 0.8;
+    margin-bottom: 1.5rem;
+  }
+  .prop-specs {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .spec { text-align: center; }
+  .spec-val { font-size: 1.2rem; font-weight: 600; }
+  .spec-lbl { font-size: 0.65rem; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.08em; }
+  .prop-cta {
+    background: var(--coral);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.65rem 1.4rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--ocean);
+    color: white;
+    padding: 0.9rem 1.4rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(44,95,110,0.3);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    z-index: 999;
+    max-width: 280px;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── GUEST FORM PANEL (simulates the phone view) ── */
+  .phone-frame {
+    max-width: 420px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+    border: 1px solid var(--dune);
+  }
+  .phone-header {
+    background: linear-gradient(135deg, var(--ocean), var(--seafoam));
+    padding: 1.75rem 1.5rem 1.25rem;
+    color: white;
+    text-align: center;
+  }
+  .phone-header .ph-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    font-style: italic;
+  }
+  .phone-header .ph-sub {
+    font-size: 0.78rem;
+    opacity: 0.8;
+    margin-top: 0.2rem;
+  }
+  .phone-body { padding: 1.5rem; }
+  .phone-body .form-group { margin-bottom: 1rem; }
+  .guest-submit {
+    width: 100%;
+    padding: 1rem;
+    background: var(--coral);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    letter-spacing: 0.04em;
+  }
+  .guest-submit:hover { opacity: 0.9; }
+  .success-msg {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    display: none;
+  }
+  .success-msg .check { font-size: 3rem; margin-bottom: 0.75rem; }
+  .success-msg h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    color: var(--ocean);
+    margin-bottom: 0.5rem;
+  }
+  .success-msg p { font-size: 0.84rem; color: #666; }
+
+  hr.divider { border: none; border-top: 1px solid var(--dune); margin: 1.5rem 0; }
+
+  .tip-box {
+    background: var(--sand);
+    border-left: 3px solid var(--coral);
+    border-radius: 0 8px 8px 0;
+    padding: 0.85rem 1.1rem;
+    font-size: 0.8rem;
+    color: #555;
+    margin-top: 1rem;
+    line-height: 1.6;
+  }
+  .tip-box strong { color: var(--ocean); }
+
+  .status-pill {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    background: var(--sand);
+    color: var(--ocean);
+    border: 1px solid var(--dune);
+  }
+  .status-pill.ok { background:#EAF7EA; color:#1E8449; border-color:#BBDDBB; }
+  .status-pill.warn { background:#FEF3E2; color:#A86405; border-color:#E6C78D; }
+</style>
+</head>
+<body>
+
+<!-- Netlify form detection: enables real lead capture when deployed on Netlify -->
+<form name="guest-lead" netlify netlify-honeypot="bot-field" hidden>
+  <input type="text" name="name" />
+  <input type="tel" name="phone" />
+  <input type="email" name="email" />
+  <input type="text" name="timeline" />
+  <input type="text" name="financing" />
+  <input type="text" name="priceRange" />
+  <input type="text" name="hasAgent" />
+  <textarea name="notes"></textarea>
+  <input type="text" name="property" />
+  <input type="text" name="leadSource" />
+  <input type="text" name="submittedAt" />
+</form>
+
+<!-- NAV -->
+<nav>
+  <div class="brand">Salt &amp; Shine Co.</div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showPanel('setup', this)">Setup</button>
+    <button class="tab-btn" onclick="showPanel('guestform', this)">Guest Form</button>
+    <button class="tab-btn" onclick="showPanel('property', this)">Property Info</button>
+    <button class="tab-btn" onclick="showPanel('crm', this)">CRM</button>
+  </div>
+</nav>
+
+<!-- ═══════════════ SETUP PANEL ═══════════════ -->
+<div id="panel-setup" class="panel active">
+  <div class="hero">
+    <h1>Open House QR System</h1>
+    <p>Set up your open house details, then generate QR codes for your sign-in form and property info sign.</p>
+  </div>
+  <div class="main">
+
+    <!-- Open House Info -->
+    <div class="card">
+      <div class="card-title">🏡 Open House Info</div>
+      <div class="card-sub">This populates your guest form header and property info page</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Property Address</label>
+          <input type="text" id="setup-address" placeholder="123 Ocean Breeze Dr, Malibu CA 90265" oninput="updatePreviews()">
+        </div>
+        <div class="form-group">
+          <label>List Price</label>
+          <input type="text" id="setup-price" placeholder="$1,250,000" oninput="updatePreviews()">
+        </div>
+        <div class="form-group">
+          <label>Open House Date</label>
+          <input type="date" id="setup-date" oninput="updatePreviews()">
+        </div>
+        <div class="form-group">
+          <label>Beds</label>
+          <input type="text" id="setup-beds" placeholder="4" oninput="updatePreviews()">
+        </div>
+        <div class="form-group">
+          <label>Baths</label>
+          <input type="text" id="setup-baths" placeholder="3" oninput="updatePreviews()">
+        </div>
+        <div class="form-group">
+          <label>Sq Ft</label>
+          <input type="text" id="setup-sqft" placeholder="2,400" oninput="updatePreviews()">
+        </div>
+        <div class="form-group">
+          <label>Year Built</label>
+          <input type="text" id="setup-year" placeholder="2005" oninput="updatePreviews()">
+        </div>
+        <div class="form-group full">
+          <label>Property Highlights (one per line)</label>
+          <textarea id="setup-highlights" placeholder="Ocean views from master bedroom&#10;Renovated chef's kitchen&#10;Private pool &amp; spa&#10;3-car garage" rows="4" oninput="updatePreviews()"></textarea>
+        </div>
+        <div class="form-group full">
+          <label>Your Name &amp; Contact</label>
+          <input type="text" id="setup-agent" placeholder="Sara Daniell — Salt & Shine Co. | 555-867-5309" oninput="updatePreviews()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Google Sheets Lead Delivery</div>
+      <div class="card-sub">Paste your Apps Script Web App URL here after you deploy the Google Sheet script</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Google Apps Script Web App URL</label>
+          <input type="url" id="sheets-webhook-url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" oninput="saveSetupState(); updatePreviews(); updateSheetsStatus();">
+        </div>
+        <div class="form-group">
+          <label>Optional Lead Secret</label>
+          <input type="text" id="lead-secret" placeholder="Example: saltshine2026" oninput="saveSetupState(); updatePreviews();">
+        </div>
+        <div class="form-group">
+          <label>Connection Status</label>
+          <span class="status-pill warn" id="sheets-status">Not connected yet</span>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline btn-sm" onclick="testSheetsConnection()">Send Test Lead</button>
+        <button class="btn btn-outline btn-sm" onclick="copyGuestLink()">Copy Guest QR Link</button>
+        <button class="btn btn-outline btn-sm" onclick="copyPropertyLink()">Copy Property QR Link</button>
+      </div>
+      <div class="tip-box">
+        <strong>Live lead capture:</strong> Once connected, every guest form submission will save to your browser CRM and post to your Google Sheet. The generated QR links include your property details so buyers see the right info from their own phones.
+      </div>
+    </div>
+
+    <!-- QR Codes -->
+    <div class="card">
+      <div class="card-title">📱 Your QR Codes</div>
+      <div class="card-sub">Print these and place them at your open house</div>
+
+      <div class="setup-section">
+        <div class="setup-title">QR 1 — Sign-In Form (for inside the home)</div>
+        <div class="qr-area">
+          <div class="qr-box">
+            <div id="qr-signin"></div>
+            <div class="qr-label">Sign In Here</div>
+          </div>
+          <div class="qr-info">
+            <p>Place this QR code on a tablet stand or printed card at the entry. Guests scan it to fill out their contact info and buying timeline — all saved to your CRM instantly.</p>
+            <span class="url-pill" id="signin-url">← Fill in your address above</span>
+            <button class="btn btn-outline btn-sm" onclick="downloadQR('qr-signin', 'signin-qr')">⬇ Download QR</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-section">
+        <div class="setup-title">QR 2 — Property Info (for yard signs)</div>
+        <div class="qr-area">
+          <div class="qr-box">
+            <div id="qr-property"></div>
+            <div class="qr-label">Learn More</div>
+          </div>
+          <div class="qr-info">
+            <p>Put this on your yard sign, directional arrows, or flyer box. Drive-by buyers scan to instantly see property details, price, photos link, and your contact info — no app needed.</p>
+            <span class="url-pill" id="property-url">← Fill in your address above</span>
+            <button class="btn btn-outline btn-sm" onclick="downloadQR('qr-property', 'property-qr')">⬇ Download QR</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <strong>💡 How to use these:</strong> Click the tabs above to preview exactly what guests will see when they scan each QR code. The <em>Guest Form</em> tab shows your sign-in form. The <em>Property Info</em> tab shows your yard sign landing page. Fill in the property details above and both update live.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ GUEST FORM PANEL ═══════════════ -->
+<div id="panel-guestform" class="panel">
+  <div class="hero">
+    <h1>Guest Sign-In</h1>
+    <p>This is exactly what guests see when they scan your open house QR code.</p>
+  </div>
+  <div class="main">
+    <div class="phone-frame">
+      <div class="phone-header">
+        <div class="ph-title">Welcome! 👋</div>
+        <div class="ph-sub" id="form-address-display">Open House — Fill in setup to personalize</div>
+      </div>
+      <div class="phone-body">
+        <div id="guest-form-content">
+          <div class="form-group">
+            <label>First &amp; Last Name *</label>
+            <input type="text" id="g-name" placeholder="Jane Smith">
+          </div>
+          <div class="form-group">
+            <label>Phone Number *</label>
+            <input type="tel" id="g-phone" placeholder="(555) 867-5309">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="g-email" placeholder="jane@email.com">
+          </div>
+          <div class="form-group">
+            <label>When are you looking to buy?</label>
+            <select id="g-timeline">
+              <option value="">Select timeline...</option>
+              <option>ASAP / Already looking</option>
+              <option>1–3 months</option>
+              <option>3–6 months</option>
+              <option>6–12 months</option>
+              <option>Just browsing</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Financing Status</label>
+            <select id="g-financing">
+              <option value="">Select...</option>
+              <option>Pre-approved</option>
+              <option>Working on pre-approval</option>
+              <option>Cash buyer</option>
+              <option>Need to talk to a lender</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Price Range</label>
+            <select id="g-price">
+              <option value="">Select range...</option>
+              <option>Under $500k</option>
+              <option>$500k – $750k</option>
+              <option>$750k – $1M</option>
+              <option>$1M – $1.5M</option>
+              <option>$1.5M+</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Working with an agent?</label>
+            <select id="g-agent">
+              <option value="">Select...</option>
+              <option>No, I'm unrepresented</option>
+              <option>Yes, I have an agent</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Notes / Questions for the Agent</label>
+            <textarea id="g-notes" placeholder="Anything you'd like to share..."></textarea>
+          </div>
+          <button class="guest-submit" onclick="submitGuestForm()">Submit &amp; Sign In ✓</button>
+        </div>
+        <div class="success-msg" id="success-msg">
+          <div class="check">🌊</div>
+          <h3>You're signed in!</h3>
+          <p>Thanks for visiting. We'll be in touch soon with more details about this property.</p>
+          <br>
+          <p style="font-size:0.75rem;color:#aaa;">Powered by Salt &amp; Shine Co.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PROPERTY INFO PANEL ═══════════════ -->
+<div id="panel-property" class="panel">
+  <div class="hero">
+    <h1>Property Info Page</h1>
+    <p>This is what drive-by buyers see when they scan your yard sign QR code.</p>
+  </div>
+  <div class="main">
+
+    <!-- Setup section -->
+    <div class="card">
+      <div class="card-title">✏️ Property Description</div>
+      <div class="card-sub">Add or edit details for the buyer landing page below</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Listing URL (Zillow / Realtor.com / MLS)</label>
+          <input type="url" id="listing-url" placeholder="https://www.zillow.com/homes/..." oninput="updatePreviews()">
+        </div>
+        <div class="form-group full">
+          <label>Custom Message to Buyers</label>
+          <textarea id="prop-message" placeholder="Welcome! This stunning coastal home won't last long. Text or call me for a private showing..." rows="3" oninput="updatePreviews()"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live preview -->
+    <div class="card">
+      <div class="card-title">📱 Buyer View Preview</div>
+      <div class="card-sub">Exactly what someone sees after scanning your yard sign</div>
+      <div class="phone-frame" style="max-width:380px;margin:0 auto;">
+        <div id="property-page-preview"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ CRM PANEL ═══════════════ -->
+<div id="panel-crm" class="panel">
+  <div class="hero">
+    <h1>Lead CRM</h1>
+    <p>Every guest who signs in at your open house appears here automatically.</p>
+  </div>
+  <div class="main">
+
+    <div class="card">
+      <div class="crm-stats">
+        <div class="stat-box">
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-lbl">Total Leads</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-hot">0</div>
+          <div class="stat-lbl">Hot (ASAP)</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-preapproved">0</div>
+          <div class="stat-lbl">Pre-Approved</div>
+        </div>
+      </div>
+
+      <div class="crm-controls">
+        <input class="crm-search" type="text" id="crm-search" placeholder="Search by name, phone, or email..." oninput="renderCRM()">
+        <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="btn btn-coral btn-sm" onclick="clearCRM()">🗑 Clear All</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Timeline</th>
+              <th>Financing</th>
+              <th>Price Range</th>
+              <th>Agent?</th>
+              <th>Notes</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="crm-body">
+            <tr><td colspan="9">
+              <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <p>No leads yet. Guest sign-ins will appear here.</p>
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───
+let leads = JSON.parse(localStorage.getItem('ss_leads') || '[]');
+const SETUP_STORAGE_KEY = 'ss_open_house_setup_v2';
+
+// ─── TABS ───
+function showPanel(name, clickedButton = null) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  const activeBtn = clickedButton || document.querySelector(`.tab-btn[onclick*="${name}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+  if (window.location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
+  if (name === 'crm') renderCRM();
+  if (name === 'property') renderPropertyPage();
+}
+
+// ─── SETUP → PREVIEWS ───
+function getSetup() {
+  return {
+    address: document.getElementById('setup-address').value || '123 Ocean Breeze Dr',
+    price: document.getElementById('setup-price').value || '$0',
+    date: document.getElementById('setup-date').value || '',
+    beds: document.getElementById('setup-beds').value || '—',
+    baths: document.getElementById('setup-baths').value || '—',
+    sqft: document.getElementById('setup-sqft').value || '—',
+    year: document.getElementById('setup-year').value || '—',
+    highlights: document.getElementById('setup-highlights').value || '',
+    agent: document.getElementById('setup-agent').value || 'Salt & Shine Co.',
+    listingUrl: document.getElementById('listing-url')?.value || '',
+    propertyMessage: document.getElementById('prop-message')?.value || '',
+    sheetsWebhookUrl: document.getElementById('sheets-webhook-url')?.value || '',
+    leadSecret: document.getElementById('lead-secret')?.value || ''
+  };
+}
+
+function setInputValue(id, value) {
+  const el = document.getElementById(id);
+  if (el && value !== undefined && value !== null) el.value = value;
+}
+
+function saveSetupState() {
+  localStorage.setItem(SETUP_STORAGE_KEY, JSON.stringify(getSetup()));
+}
+
+function loadSetupState() {
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get('oh');
+  let setup = null;
+  if (encoded) {
+    try { setup = JSON.parse(decodeURIComponent(escape(atob(encoded)))); } catch (e) { console.warn('Could not read QR setup data', e); }
+  }
+  if (!setup) {
+    try { setup = JSON.parse(localStorage.getItem(SETUP_STORAGE_KEY) || 'null'); } catch (e) { setup = null; }
+  }
+  if (!setup) return;
+  setInputValue('setup-address', setup.address);
+  setInputValue('setup-price', setup.price);
+  setInputValue('setup-date', setup.date);
+  setInputValue('setup-beds', setup.beds);
+  setInputValue('setup-baths', setup.baths);
+  setInputValue('setup-sqft', setup.sqft);
+  setInputValue('setup-year', setup.year);
+  setInputValue('setup-highlights', setup.highlights);
+  setInputValue('setup-agent', setup.agent);
+  setInputValue('listing-url', setup.listingUrl);
+  setInputValue('prop-message', setup.propertyMessage);
+  setInputValue('sheets-webhook-url', setup.sheetsWebhookUrl);
+  setInputValue('lead-secret', setup.leadSecret);
+}
+
+function encodeSetupForUrl() {
+  const setup = getSetup();
+  const compact = {
+    address: setup.address, price: setup.price, date: setup.date, beds: setup.beds, baths: setup.baths,
+    sqft: setup.sqft, year: setup.year, highlights: setup.highlights, agent: setup.agent,
+    listingUrl: setup.listingUrl, propertyMessage: setup.propertyMessage, sheetsWebhookUrl: setup.sheetsWebhookUrl, leadSecret: setup.leadSecret
+  };
+  return btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
+}
+
+function buildLiveLink(panel) {
+  const base = window.location.origin + window.location.pathname;
+  return `${base}?oh=${encodeURIComponent(encodeSetupForUrl())}#${panel}`;
+}
+
+function updatePreviews() {
+  saveSetupState();
+  const s = getSetup();
+  document.getElementById('form-address-display').textContent = s.address;
+  const signInUrl = buildLiveLink('guestform');
+  const propertyUrl = buildLiveLink('property');
+  document.getElementById('signin-url').textContent = signInUrl;
+  document.getElementById('property-url').textContent = propertyUrl;
+  generateQR('qr-signin', signInUrl, s.address + ' — Sign In');
+  generateQR('qr-property', propertyUrl, s.address + ' — Info');
+  updateSheetsStatus();
+  renderPropertyPage();
+}
+
+function updateSheetsStatus() {
+  const el = document.getElementById('sheets-status');
+  if (!el) return;
+  const connected = !!getSetup().sheetsWebhookUrl.trim();
+  el.textContent = connected ? 'Connected to Google Sheets URL' : 'Not connected yet';
+  el.className = connected ? 'status-pill ok' : 'status-pill warn';
+}
+
+async function copyText(text, label) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast(`${label} copied!`);
+  } catch (e) {
+    prompt(`Copy this ${label}:`, text);
+  }
+}
+function copyGuestLink() { updatePreviews(); copyText(buildLiveLink('guestform'), 'Guest link'); }
+function copyPropertyLink() { updatePreviews(); copyText(buildLiveLink('property'), 'Property link'); }
+
+// ─── QR CODES ───
+let qrInstances = {};
+function generateQR(containerId, url, label) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  qrInstances[containerId] = new QRCode(el, {
+    text: url,
+    width: 140,
+    height: 140,
+    colorDark: '#2C5F6E',
+    colorLight: '#FFFFFF',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+function downloadQR(containerId, filename) {
+  const el = document.getElementById(containerId);
+  const canvas = el.querySelector('canvas');
+  if (!canvas) { showToast('Generate the QR first by filling in the address.'); return; }
+  const link = document.createElement('a');
+  link.download = filename + '.png';
+  link.href = canvas.toDataURL();
+  link.click();
+  showToast('QR code downloaded!');
+}
+
+// ─── GUEST FORM SUBMISSION ───
+function submitGuestForm() {
+  const name = document.getElementById('g-name').value.trim();
+  const phone = document.getElementById('g-phone').value.trim();
+  if (!name || !phone) { showToast('Please enter your name and phone number.'); return; }
+  const lead = {
+    id: Date.now(),
+    name,
+    phone,
+    email: document.getElementById('g-email').value.trim(),
+    timeline: document.getElementById('g-timeline').value,
+    financing: document.getElementById('g-financing').value,
+    priceRange: document.getElementById('g-price').value,
+    hasAgent: document.getElementById('g-agent').value,
+    notes: document.getElementById('g-notes').value.trim(),
+    property: document.getElementById('setup-address').value || 'Open House',
+    date: new Date().toLocaleDateString(),
+    submittedAt: new Date().toISOString(),
+    leadSource: 'Open House QR',
+    pageUrl: window.location.href,
+    userAgent: navigator.userAgent
+  };
+  leads.unshift(lead);
+  localStorage.setItem('ss_leads', JSON.stringify(leads));
+  saveLeadRemote(lead);
+  document.getElementById('guest-form-content').style.display = 'none';
+  document.getElementById('success-msg').style.display = 'block';
+  showToast('✅ Lead saved to CRM!');
+  // Reset form after 3s
+  setTimeout(() => {
+    document.getElementById('guest-form-content').style.display = 'block';
+    document.getElementById('success-msg').style.display = 'none';
+    ['g-name','g-phone','g-email','g-notes'].forEach(id => document.getElementById(id).value = '');
+    ['g-timeline','g-financing','g-price','g-agent'].forEach(id => document.getElementById(id).selectedIndex = 0);
+  }, 3000);
+}
+
+// ─── PROPERTY PAGE ───
+function renderPropertyPage() {
+  const s = getSetup();
+  const listingUrl = s.listingUrl || '';
+  const customMsg = s.propertyMessage || 'Welcome! Reach out for a private tour.';
+  const highlights = s.highlights.split('\n').filter(h => h.trim()).map(h =>
+    `<div style="display:flex;align-items:flex-start;gap:0.5rem;margin-bottom:0.5rem;font-size:0.83rem;">
+      <span style="color:#C97B5A;margin-top:1px;">✦</span><span>${h.trim()}</span>
+    </div>`
+  ).join('');
+
+  document.getElementById('property-page-preview').innerHTML = `
+    <div style="background:linear-gradient(135deg,#2C5F6E,#5B9BAA);padding:1.5rem;color:white;text-align:center;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:300;font-style:italic;opacity:0.8;margin-bottom:0.5rem;">Salt &amp; Shine Co.</div>
+      <div style="font-size:1.6rem;font-weight:700;margin-bottom:0.3rem;">${s.price}</div>
+      <div style="font-size:0.8rem;opacity:0.85;">${s.address}</div>
+    </div>
+    <div style="padding:1.25rem;background:white;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:1.25rem;text-align:center;">
+        ${[['🛏','Beds',s.beds],['🛁','Baths',s.baths],['📐','Sq Ft',s.sqft],['📅','Built',s.year]].map(([icon,lbl,val]) =>
+          `<div style="background:#F7F4F0;border-radius:8px;padding:0.6rem 0.3rem;">
+            <div style="font-size:1.1rem;">${icon}</div>
+            <div style="font-size:0.9rem;font-weight:600;color:#2C5F6E;">${val}</div>
+            <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:#999;">${lbl}</div>
+          </div>`
+        ).join('')}
+      </div>
+      ${highlights ? `<div style="margin-bottom:1rem;">${highlights}</div>` : ''}
+      <div style="background:#F0EBE1;border-radius:8px;padding:0.9rem;margin-bottom:1rem;font-size:0.82rem;line-height:1.6;color:#444;border-left:3px solid #C97B5A;">
+        ${customMsg}
+      </div>
+      <div style="font-size:0.8rem;font-weight:600;color:#2C5F6E;margin-bottom:0.5rem;">${s.agent}</div>
+      ${listingUrl ? `<a href="${listingUrl}" target="_blank" style="display:block;text-align:center;background:#2C5F6E;color:white;padding:0.75rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;margin-top:0.75rem;">View Full Listing ↗</a>` : ''}
+      <a href="tel:" style="display:block;text-align:center;background:#C97B5A;color:white;padding:0.75rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;margin-top:0.5rem;">📞 Schedule a Showing</a>
+    </div>
+  `;
+}
+
+
+async function saveLeadRemote(lead) {
+  await Promise.allSettled([saveLeadToGoogleSheet(lead), saveLeadToNetlify(lead)]);
+}
+
+async function saveLeadToGoogleSheet(lead) {
+  const setup = getSetup();
+  const url = setup.sheetsWebhookUrl.trim();
+  if (!url) return;
+  const payload = { ...lead, secret: setup.leadSecret || '' };
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    console.log('Lead posted to Google Sheets.');
+  } catch (e) {
+    console.log('Google Sheets lead save failed; local CRM copy still saved.', e);
+  }
+}
+
+async function saveLeadToNetlify(lead) {
+  const formData = new FormData();
+  formData.append('form-name', 'guest-lead');
+  Object.entries(lead).forEach(([key, value]) => formData.append(key, value || ''));
+  try {
+    await fetch('/', { method: 'POST', body: formData });
+  } catch (e) {
+    console.log('Netlify lead save skipped/failed; local CRM copy still saved.', e);
+  }
+}
+
+async function testSheetsConnection() {
+  const setup = getSetup();
+  if (!setup.sheetsWebhookUrl.trim()) { showToast('Paste your Google Apps Script Web App URL first.'); return; }
+  const testLead = {
+    id: Date.now(),
+    name: 'Test Lead',
+    phone: '(555) 000-0000',
+    email: 'test@example.com',
+    timeline: 'ASAP / Already looking',
+    financing: 'Pre-approved',
+    priceRange: setup.price || '',
+    hasAgent: 'No, I\'m unrepresented',
+    notes: 'Test submission from Salt & Shine setup.',
+    property: setup.address || 'Open House',
+    date: new Date().toLocaleDateString(),
+    submittedAt: new Date().toISOString(),
+    leadSource: 'Connection Test',
+    pageUrl: window.location.href,
+    userAgent: navigator.userAgent
+  };
+  await saveLeadToGoogleSheet(testLead);
+  showToast('Test sent. Check your Google Sheet for “Test Lead”.');
+}
+
+// ─── CRM ───
+function renderCRM() {
+  const q = document.getElementById('crm-search')?.value?.toLowerCase() || '';
+  const filtered = leads.filter(l =>
+    (l.name + l.phone + l.email).toLowerCase().includes(q)
+  );
+  const hot = leads.filter(l => l.timeline === 'ASAP / Already looking').length;
+  const pre = leads.filter(l => l.financing === 'Pre-approved' || l.financing === 'Cash buyer').length;
+  document.getElementById('stat-total').textContent = leads.length;
+  document.getElementById('stat-hot').textContent = hot;
+  document.getElementById('stat-preapproved').textContent = pre;
+
+  const body = document.getElementById('crm-body');
+  if (filtered.length === 0) {
+    body.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><p>No leads yet. Guest sign-ins will appear here.</p></div></td></tr>`;
+    return;
+  }
+
+  function timelineBadge(t) {
+    if (!t) return '';
+    if (t.includes('ASAP')) return `<span class="badge badge-hot">${t}</span>`;
+    if (t.includes('1–3')) return `<span class="badge badge-warm">${t}</span>`;
+    if (t.includes('3–6') || t.includes('6–12')) return `<span class="badge badge-cool">${t}</span>`;
+    return `<span class="badge" style="background:#eee;color:#555;">${t}</span>`;
+  }
+  function financingBadge(f) {
+    if (!f) return '';
+    if (f === 'Pre-approved' || f === 'Cash buyer') return `<span class="badge badge-pre">${f}</span>`;
+    return `<span style="font-size:0.78rem;color:#666;">${f}</span>`;
+  }
+
+  body.innerHTML = filtered.map(l => `
+    <tr>
+      <td><strong>${l.name}</strong></td>
+      <td>${l.phone}</td>
+      <td style="font-size:0.78rem;">${l.email || '—'}</td>
+      <td>${timelineBadge(l.timeline) || '—'}</td>
+      <td>${financingBadge(l.financing) || '—'}</td>
+      <td style="font-size:0.78rem;">${l.priceRange || '—'}</td>
+      <td style="font-size:0.78rem;">${l.hasAgent || '—'}</td>
+      <td style="font-size:0.78rem;max-width:150px;">${l.notes || '—'}</td>
+      <td style="font-size:0.75rem;color:#999;">${l.date}</td>
+    </tr>
+  `).join('');
+}
+
+function exportCSV() {
+  if (leads.length === 0) { showToast('No leads to export yet.'); return; }
+  const headers = ['Name','Phone','Email','Timeline','Financing','Price Range','Has Agent','Notes','Date','Property'];
+  const rows = leads.map(l => [l.name,l.phone,l.email,l.timeline,l.financing,l.priceRange,l.hasAgent,l.notes,l.date,l.property].map(v => `"${(v||'').replace(/"/g,'""')}"`));
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'salt-shine-leads.csv'; a.click();
+  showToast('CSV exported!');
+}
+
+function clearCRM() {
+  if (!confirm('Clear all leads? This cannot be undone.')) return;
+  leads = [];
+  localStorage.setItem('ss_leads', '[]');
+  renderCRM();
+  showToast('Leads cleared.');
+}
+
+// ─── TOAST ───
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ─── INIT ───
+function openPanelFromHash() {
+  const panel = (window.location.hash || '#setup').replace('#', '');
+  const allowed = ['setup', 'guestform', 'property', 'crm'];
+  showPanel(allowed.includes(panel) ? panel : 'setup');
+}
+loadSetupState();
+updatePreviews();
+openPanelFromHash();
+window.addEventListener('hashchange', openPanelFromHash);
+</script>
+</body>
+</html>
