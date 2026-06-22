@@ -1,57 +1,127 @@
-# Salt & Shine Co. Open House QR System — Google Sheets Version
+/**
+ * Salt & Shine Co. Open House Lead Capture â†’ Google Sheets
+ *
+ * How to use:
+ * 1) Create a Google Sheet named something like "Salt & Shine Leads".
+ * 2) In the Sheet, go to Extensions â†’ Apps Script.
+ * 3) Delete any starter code and paste this entire file.
+ * 4) Optional: set REQUIRED_SECRET to the same secret you enter in the website setup.
+ * 5) Run setupSheet once, approve permissions, then deploy as a Web App.
+ */
 
-This version posts every guest sign-in to Google Sheets using a Google Apps Script Web App. It also keeps the local browser CRM and CSV export as a backup.
+const SHEET_NAME = 'Open House Leads';
+const REQUIRED_SECRET = ''; // Optional. Example: 'saltshine2026'
 
-## Files
+const HEADERS = [
+  'Received At',
+  'Name',
+  'Phone',
+  'Email',
+  'Timeline',
+  'Financing',
+  'Price Range',
+  'Working With Agent',
+  'Notes',
+  'Property',
+  'Lead Source',
+  'Submitted At',
+  'Page URL',
+  'User Agent'
+];
 
-- `index.html` — your live open house QR website
-- `google-apps-script.js` — paste this into Google Apps Script attached to your Google Sheet
+function setupSheet() {
+  const sheet = getOrCreateSheet_();
+  ensureHeaders_(sheet);
+  sheet.setFrozenRows(1);
+  sheet.autoResizeColumns(1, HEADERS.length);
+}
 
-## Set up Google Sheets lead capture
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
 
-1. Create a new Google Sheet, for example: `Salt & Shine Leads`.
-2. In the Sheet, go to **Extensions → Apps Script**.
-3. Delete the starter code and paste everything from `google-apps-script.js`.
-4. Optional but recommended: set `REQUIRED_SECRET` near the top of the script, for example:
+  try {
+    const data = parseRequest_(e);
 
-   ```js
-   const REQUIRED_SECRET = 'saltshine2026';
-   ```
+    if (REQUIRED_SECRET && data.secret !== REQUIRED_SECRET) {
+      return json_({ ok: false, error: 'Unauthorized' });
+    }
 
-5. Click **Save**.
-6. In Apps Script, choose the `setupSheet` function and click **Run** once. Approve the permissions.
-7. Click **Deploy → New deployment**.
-8. Choose **Web app**.
-9. Set:
-   - **Execute as:** Me
-   - **Who has access:** Anyone
-10. Click **Deploy** and copy the Web App URL ending in `/exec`.
-11. Open your deployed `index.html` site.
-12. Paste the Web App URL into **Google Sheets Lead Delivery**.
-13. If you used a secret in Apps Script, paste the same value into **Optional Lead Secret**.
-14. Click **Send Test Lead** and confirm a row appears in the Sheet.
-15. Fill in the property details, then download or copy your new QR links.
+    const sheet = getOrCreateSheet_();
+    ensureHeaders_(sheet);
 
-## Important live-use note
+    sheet.appendRow([
+      new Date(),
+      clean_(data.name),
+      clean_(data.phone),
+      clean_(data.email),
+      clean_(data.timeline),
+      clean_(data.financing),
+      clean_(data.priceRange),
+      clean_(data.hasAgent),
+      clean_(data.notes),
+      clean_(data.property),
+      clean_(data.leadSource),
+      clean_(data.submittedAt),
+      clean_(data.pageUrl),
+      clean_(data.userAgent)
+    ]);
 
-The generated QR URLs now include your property details and Google Sheets endpoint, so buyers who scan the QR from their own phones will see the correct guest form/property info and submissions will go to your Sheet.
+    return json_({ ok: true });
+  } catch (err) {
+    console.error(err);
+    return json_({ ok: false, error: String(err) });
+  } finally {
+    lock.releaseLock();
+  }
+}
 
-## Deploying the website
+function doGet() {
+  return json_({ ok: true, message: 'Salt & Shine lead endpoint is live.' });
+}
 
-The simplest hosting path is Netlify manual deploy:
+function parseRequest_(e) {
+  if (!e) return {};
 
-1. Go to Netlify.
-2. Add a new site.
-3. Choose manual deploy.
-4. Drag in this folder or ZIP.
-5. Use the live URL to set up your open house and generate QR codes.
+  if (e.postData && e.postData.contents) {
+    const body = e.postData.contents;
+    try {
+      return JSON.parse(body);
+    } catch (err) {
+      // Fall through to form-style parameters below.
+    }
+  }
 
-## Testing checklist
+  return e.parameter || {};
+}
 
-- Open the live site.
-- Paste your Apps Script URL.
-- Click **Send Test Lead**.
-- Confirm `Test Lead` appears in Google Sheets.
-- Fill out the guest form from your phone.
-- Confirm the real lead appears in Google Sheets.
-- Download the QR codes after your property details and Sheets URL are filled in.
+function getOrCreateSheet_() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  return spreadsheet.getSheetByName(SHEET_NAME) || spreadsheet.insertSheet(SHEET_NAME);
+}
+
+function ensureHeaders_(sheet) {
+  const firstRow = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0];
+  const hasHeaders = firstRow.some(value => String(value).trim() !== '');
+
+  if (!hasHeaders) {
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+    sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight('bold');
+    return;
+  }
+
+  // If headers exist but are outdated, only fill missing header cells without wiping your sheet.
+  const updated = HEADERS.map((header, index) => firstRow[index] || header);
+  sheet.getRange(1, 1, 1, HEADERS.length).setValues([updated]);
+}
+
+function clean_(value) {
+  if (value === undefined || value === null) return '';
+  return String(value).trim();
+}
+
+function json_(payload) {
+  return ContentService
+    .createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
+}
