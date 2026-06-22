@@ -613,14 +613,19 @@
           <label>Connection Status</label>
           <span class="status-pill warn" id="sheets-status">Not connected yet</span>
         </div>
+        <div class="form-group full">
+          <label>Property ID for Short QR Links</label>
+          <input type="text" id="setup-property-id" placeholder="Click Save Property to create this" readonly>
+        </div>
       </div>
       <div class="btn-row">
+        <button class="btn btn-primary btn-sm" onclick="savePropertyToSheets()">Save Property + Create Short QR</button>
         <button class="btn btn-outline btn-sm" onclick="testSheetsConnection()">Send Test Lead</button>
         <button class="btn btn-outline btn-sm" onclick="copyGuestLink()">Copy Guest QR Link</button>
         <button class="btn btn-outline btn-sm" onclick="copyPropertyLink()">Copy Property QR Link</button>
       </div>
       <div class="tip-box">
-        <strong>Live lead capture:</strong> Once connected, every guest form submission will save to your browser CRM and post to your Google Sheet. The generated QR links include your property details so buyers see the right info from their own phones.
+        <strong>Important:</strong> Click <em>Save Property + Create Short QR</em> before downloading QR codes. This stores the house details in your Google Sheet and makes the QR short enough to scan reliably. The QR will only carry a short property ID instead of a huge block of listing data.
       </div>
     </div>
 
@@ -885,7 +890,8 @@ function getSetup() {
     listingUrl: document.getElementById('listing-url')?.value || '',
     propertyMessage: document.getElementById('prop-message')?.value || '',
     sheetsWebhookUrl: document.getElementById('sheets-webhook-url')?.value || '',
-    leadSecret: document.getElementById('lead-secret')?.value || ''
+    leadSecret: document.getElementById('lead-secret')?.value || '',
+    propertyId: document.getElementById('setup-property-id')?.value || ''
   };
 }
 
@@ -923,16 +929,22 @@ function normalizeSetupPayload(payload) {
 }
 
 function loadSetupState() {
-  const params = new URLSearchParams(window.location.search);
-  const encoded = params.get('oh');
   let setup = null;
-  if (encoded) {
-    try { setup = JSON.parse(decodeURIComponent(escape(atob(encoded)))); } catch (e) { console.warn('Could not read QR setup data', e); }
-  }
-  if (!setup) {
-    try { setup = JSON.parse(localStorage.getItem(SETUP_STORAGE_KEY) || 'null'); } catch (e) { setup = null; }
-  }
+  try { setup = JSON.parse(localStorage.getItem(SETUP_STORAGE_KEY) || 'null'); } catch (e) { setup = null; }
   setup = normalizeSetupPayload(setup);
+  if (setup) applySetupToInputs(setup);
+
+  const params = new URLSearchParams(window.location.search);
+  const propertyId = params.get('p') || params.get('propertyId');
+  const webhookUrl = params.get('w') || params.get('webhook');
+  if (webhookUrl) setInputValue('sheets-webhook-url', webhookUrl);
+  if (propertyId) {
+    setInputValue('setup-property-id', propertyId);
+    loadPropertyFromSheets(propertyId, webhookUrl || getSetup().sheetsWebhookUrl);
+  }
+}
+
+function applySetupToInputs(setup) {
   if (!setup) return;
   setInputValue('setup-address', setup.address);
   setInputValue('setup-price', setup.price);
@@ -950,23 +962,21 @@ function loadSetupState() {
   setInputValue('prop-message', setup.propertyMessage);
   setInputValue('sheets-webhook-url', setup.sheetsWebhookUrl);
   setInputValue('lead-secret', setup.leadSecret);
+  setInputValue('setup-property-id', setup.propertyId || setup.id);
 }
 
-function encodeSetupForUrl() {
-  const setup = getSetup();
-  const compact = {
-    ad: setup.address, pr: setup.price, dt: setup.date, bd: setup.beds, ba: setup.baths,
-    sf: setup.sqft, yr: setup.year, hl: (setup.highlights || '').slice(0, 700), ag: setup.agent,
-    ph: setup.agentPhone, bl: setup.bookingLink, tm: setup.showingText,
-    lu: setup.listingUrl, pm: (setup.propertyMessage || '').slice(0, 500),
-    wh: setup.sheetsWebhookUrl, sec: setup.leadSecret
-  };
-  return btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
+function slugifyAddress(address) {
+  const cleaned = (address || 'property').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 36);
+  return `${cleaned || 'property'}-${Date.now().toString(36).slice(-5)}`;
 }
 
 function buildLiveLink(panel) {
   const base = window.location.origin + window.location.pathname;
-  return `${base}?oh=${encodeURIComponent(encodeSetupForUrl())}#${panel}`;
+  const setup = getSetup();
+  if (setup.propertyId && setup.sheetsWebhookUrl) {
+    return `${base}?p=${encodeURIComponent(setup.propertyId)}&w=${encodeURIComponent(setup.sheetsWebhookUrl)}#${panel}`;
+  }
+  return `${base}#${panel}`;
 }
 
 function updatePreviews() {
@@ -975,15 +985,75 @@ function updatePreviews() {
   document.getElementById('form-address-display').textContent = s.address;
   const signInUrl = buildLiveLink('guestform');
   const propertyUrl = buildLiveLink('property');
-  document.getElementById('signin-url').textContent = signInUrl;
-  document.getElementById('property-url').textContent = propertyUrl;
-  if (signInUrl.length > 1800 || propertyUrl.length > 1800) {
-    showToast('QR link is getting long. Shorten highlights/message if scans fail.');
-  }
+  document.getElementById('signin-url').textContent = s.propertyId ? signInUrl : 'Click “Save Property + Create Short QR” first';
+  document.getElementById('property-url').textContent = s.propertyId ? propertyUrl : 'Click “Save Property + Create Short QR” first';
   generateQR('qr-signin', signInUrl, s.address + ' — Sign In');
   generateQR('qr-property', propertyUrl, s.address + ' — Info');
   updateSheetsStatus();
   renderPropertyPage();
+}
+
+function jsonpRequest(url, timeoutMs = 12000) {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'ssJsonp_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    const sep = url.includes('?') ? '&' : '?';
+    let done = false;
+    const cleanup = () => {
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    };
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true; cleanup(); reject(new Error('Google Sheet request timed out'));
+    }, timeoutMs);
+    window[callbackName] = (data) => {
+      if (done) return;
+      done = true; clearTimeout(timer); cleanup(); resolve(data);
+    };
+    script.onerror = () => {
+      if (done) return;
+      done = true; clearTimeout(timer); cleanup(); reject(new Error('Google Sheet request failed'));
+    };
+    script.src = `${url}${sep}callback=${encodeURIComponent(callbackName)}`;
+    document.body.appendChild(script);
+  });
+}
+
+async function savePropertyToSheets() {
+  const setup = getSetup();
+  const url = setup.sheetsWebhookUrl.trim();
+  if (!url) { showToast('Paste your Google Apps Script Web App URL first.'); return; }
+  const propertyId = setup.propertyId || slugifyAddress(setup.address);
+  const payload = { ...setup, propertyId, action: 'saveProperty' };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  showToast('Saving property to Google Sheets...');
+  try {
+    const result = await jsonpRequest(`${url}?action=saveProperty&payload=${encodeURIComponent(encoded)}`);
+    if (!result || result.ok === false) throw new Error(result?.error || 'Could not save property');
+    setInputValue('setup-property-id', result.propertyId || propertyId);
+    saveSetupState();
+    updatePreviews();
+    showToast('Property saved. Short QR codes are ready!');
+  } catch (e) {
+    console.error(e);
+    showToast('Property save failed. Recheck Apps Script deployment/access.');
+  }
+}
+
+async function loadPropertyFromSheets(propertyId, webhookUrl) {
+  const url = (webhookUrl || '').trim();
+  if (!propertyId || !url) return;
+  try {
+    const result = await jsonpRequest(`${url}?action=getProperty&propertyId=${encodeURIComponent(propertyId)}`);
+    if (!result || result.ok === false || !result.property) throw new Error(result?.error || 'Property not found');
+    applySetupToInputs({ ...result.property, propertyId, sheetsWebhookUrl: url });
+    saveSetupState();
+    updatePreviews();
+  } catch (e) {
+    console.error(e);
+    showToast('Could not load this property from Google Sheets.');
+  }
 }
 
 function updateSheetsStatus() {
@@ -1002,8 +1072,8 @@ async function copyText(text, label) {
     prompt(`Copy this ${label}:`, text);
   }
 }
-function copyGuestLink() { updatePreviews(); copyText(buildLiveLink('guestform'), 'Guest link'); }
-function copyPropertyLink() { updatePreviews(); copyText(buildLiveLink('property'), 'Property link'); }
+function copyGuestLink() { updatePreviews(); if (!getSetup().propertyId) showToast('Save the property first so the link includes the house.'); copyText(buildLiveLink('guestform'), 'Guest link'); }
+function copyPropertyLink() { updatePreviews(); if (!getSetup().propertyId) showToast('Save the property first so the link includes the house.'); copyText(buildLiveLink('property'), 'Property link'); }
 
 // ─── QR CODES ───
 let qrInstances = {};
@@ -1064,6 +1134,7 @@ function submitGuestForm() {
     hasAgent: document.getElementById('g-agent').value,
     notes: document.getElementById('g-notes').value.trim(),
     property: document.getElementById('setup-address').value || 'Open House',
+    propertyId: getSetup().propertyId || '',
     date: new Date().toLocaleDateString(),
     submittedAt: new Date().toISOString(),
     leadSource: 'Open House QR',
@@ -1187,6 +1258,7 @@ async function testSheetsConnection() {
     hasAgent: 'No, I\'m unrepresented',
     notes: 'Test submission from Salt & Shine setup.',
     property: setup.address || 'Open House',
+    propertyId: setup.propertyId || '',
     date: new Date().toLocaleDateString(),
     submittedAt: new Date().toISOString(),
     leadSource: 'Connection Test',
