@@ -580,7 +580,19 @@
         </div>
         <div class="form-group full">
           <label>Your Name &amp; Contact</label>
-          <input type="text" id="setup-agent" placeholder="Sara Daniell — Salt & Shine Co. | 555-867-5309" oninput="updatePreviews()">
+          <input type="text" id="setup-agent" placeholder="Sara Danielle — Salt & Shine Co." oninput="updatePreviews()">
+        </div>
+        <div class="form-group">
+          <label>Your Text Number</label>
+          <input type="tel" id="setup-phone" placeholder="251-555-1234" oninput="updatePreviews()">
+        </div>
+        <div class="form-group">
+          <label>Booking Link</label>
+          <input type="url" id="setup-booking" placeholder="https://calendly.com/your-link/showing" oninput="updatePreviews()">
+        </div>
+        <div class="form-group full">
+          <label>Text Message for Showing Button</label>
+          <textarea id="setup-text-message" rows="2" placeholder="Hi Sara! I’d like to schedule a showing. Here is your booking link: {bookingLink}" oninput="updatePreviews()"></textarea>
         </div>
       </div>
     </div>
@@ -867,6 +879,9 @@ function getSetup() {
     year: document.getElementById('setup-year').value || '—',
     highlights: document.getElementById('setup-highlights').value || '',
     agent: document.getElementById('setup-agent').value || 'Salt & Shine Co.',
+    agentPhone: document.getElementById('setup-phone')?.value || '',
+    bookingLink: document.getElementById('setup-booking')?.value || '',
+    showingText: document.getElementById('setup-text-message')?.value || '',
     listingUrl: document.getElementById('listing-url')?.value || '',
     propertyMessage: document.getElementById('prop-message')?.value || '',
     sheetsWebhookUrl: document.getElementById('sheets-webhook-url')?.value || '',
@@ -883,6 +898,30 @@ function saveSetupState() {
   localStorage.setItem(SETUP_STORAGE_KEY, JSON.stringify(getSetup()));
 }
 
+
+function normalizeSetupPayload(payload) {
+  if (!payload) return null;
+  if (payload.address || payload.price || payload.agent) return payload;
+  return {
+    address: payload.ad || '',
+    price: payload.pr || '',
+    date: payload.dt || '',
+    beds: payload.bd || '',
+    baths: payload.ba || '',
+    sqft: payload.sf || '',
+    year: payload.yr || '',
+    highlights: payload.hl || '',
+    agent: payload.ag || '',
+    agentPhone: payload.ph || '',
+    bookingLink: payload.bl || '',
+    showingText: payload.tm || '',
+    listingUrl: payload.lu || '',
+    propertyMessage: payload.pm || '',
+    sheetsWebhookUrl: payload.wh || '',
+    leadSecret: payload.sec || ''
+  };
+}
+
 function loadSetupState() {
   const params = new URLSearchParams(window.location.search);
   const encoded = params.get('oh');
@@ -893,6 +932,7 @@ function loadSetupState() {
   if (!setup) {
     try { setup = JSON.parse(localStorage.getItem(SETUP_STORAGE_KEY) || 'null'); } catch (e) { setup = null; }
   }
+  setup = normalizeSetupPayload(setup);
   if (!setup) return;
   setInputValue('setup-address', setup.address);
   setInputValue('setup-price', setup.price);
@@ -902,8 +942,11 @@ function loadSetupState() {
   setInputValue('setup-sqft', setup.sqft);
   setInputValue('setup-year', setup.year);
   setInputValue('setup-highlights', setup.highlights);
-  setInputValue('setup-agent', setup.agent);
-  setInputValue('listing-url', setup.listingUrl);
+  setInputValue('setup-agent', setup.agent || setup.a);
+  setInputValue('setup-phone', setup.agentPhone || setup.ph);
+  setInputValue('setup-booking', setup.bookingLink || setup.bl);
+  setInputValue('setup-text-message', setup.showingText || setup.tm);
+  setInputValue('listing-url', setup.listingUrl || setup.lu);
   setInputValue('prop-message', setup.propertyMessage);
   setInputValue('sheets-webhook-url', setup.sheetsWebhookUrl);
   setInputValue('lead-secret', setup.leadSecret);
@@ -912,9 +955,11 @@ function loadSetupState() {
 function encodeSetupForUrl() {
   const setup = getSetup();
   const compact = {
-    address: setup.address, price: setup.price, date: setup.date, beds: setup.beds, baths: setup.baths,
-    sqft: setup.sqft, year: setup.year, highlights: setup.highlights, agent: setup.agent,
-    listingUrl: setup.listingUrl, propertyMessage: setup.propertyMessage, sheetsWebhookUrl: setup.sheetsWebhookUrl, leadSecret: setup.leadSecret
+    ad: setup.address, pr: setup.price, dt: setup.date, bd: setup.beds, ba: setup.baths,
+    sf: setup.sqft, yr: setup.year, hl: (setup.highlights || '').slice(0, 700), ag: setup.agent,
+    ph: setup.agentPhone, bl: setup.bookingLink, tm: setup.showingText,
+    lu: setup.listingUrl, pm: (setup.propertyMessage || '').slice(0, 500),
+    wh: setup.sheetsWebhookUrl, sec: setup.leadSecret
   };
   return btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
 }
@@ -932,6 +977,9 @@ function updatePreviews() {
   const propertyUrl = buildLiveLink('property');
   document.getElementById('signin-url').textContent = signInUrl;
   document.getElementById('property-url').textContent = propertyUrl;
+  if (signInUrl.length > 1800 || propertyUrl.length > 1800) {
+    showToast('QR link is getting long. Shorten highlights/message if scans fail.');
+  }
   generateQR('qr-signin', signInUrl, s.address + ' — Sign In');
   generateQR('qr-property', propertyUrl, s.address + ' — Info');
   updateSheetsStatus();
@@ -962,23 +1010,40 @@ let qrInstances = {};
 function generateQR(containerId, url, label) {
   const el = document.getElementById(containerId);
   el.innerHTML = '';
-  qrInstances[containerId] = new QRCode(el, {
-    text: url,
-    width: 140,
-    height: 140,
-    colorDark: '#2C5F6E',
-    colorLight: '#FFFFFF',
-    correctLevel: QRCode.CorrectLevel.M
-  });
+  el.dataset.qrUrl = url;
+  try {
+    if (!window.QRCode) throw new Error('QR library not loaded');
+    qrInstances[containerId] = new QRCode(el, {
+      text: url,
+      width: 160,
+      height: 160,
+      colorDark: '#2C5F6E',
+      colorLight: '#FFFFFF',
+      correctLevel: QRCode.CorrectLevel.L
+    });
+  } catch (err) {
+    console.warn('Primary QR generator failed; using image fallback.', err);
+    const img = document.createElement('img');
+    img.alt = label || 'QR code';
+    img.width = 160;
+    img.height = 160;
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(url);
+    el.appendChild(img);
+    const msg = document.createElement('div');
+    msg.style.cssText = 'font-size:0.68rem;color:#C97B5A;margin-top:0.4rem;line-height:1.3;';
+    msg.textContent = 'Fallback QR loaded. Test scan before printing.';
+    el.appendChild(msg);
+  }
 }
 
 function downloadQR(containerId, filename) {
   const el = document.getElementById(containerId);
   const canvas = el.querySelector('canvas');
-  if (!canvas) { showToast('Generate the QR first by filling in the address.'); return; }
+  const img = el.querySelector('img');
+  if (!canvas && !img) { showToast('Generate the QR first by filling in the address.'); return; }
   const link = document.createElement('a');
   link.download = filename + '.png';
-  link.href = canvas.toDataURL();
+  link.href = canvas ? canvas.toDataURL() : img.src;
   link.click();
   showToast('QR code downloaded!');
 }
@@ -1021,6 +1086,22 @@ function submitGuestForm() {
 }
 
 // ─── PROPERTY PAGE ───
+function digitsOnlyPhone(value) {
+  return (value || '').replace(/[^0-9+]/g, '');
+}
+
+function buildShowingTextLink(setup) {
+  const phone = digitsOnlyPhone(setup.agentPhone);
+  const defaultMsg = setup.bookingLink
+    ? `Hi! I’d like to schedule a showing for ${setup.address}. Here is the booking link: ${setup.bookingLink}`
+    : `Hi! I’d like to schedule a showing for ${setup.address}.`;
+  const message = (setup.showingText || defaultMsg)
+    .replaceAll('{bookingLink}', setup.bookingLink || '')
+    .replaceAll('{address}', setup.address || '')
+    .replaceAll('{price}', setup.price || '');
+  return `sms:${phone}?&body=${encodeURIComponent(message)}`;
+}
+
 function renderPropertyPage() {
   const s = getSetup();
   const listingUrl = s.listingUrl || '';
@@ -1053,7 +1134,7 @@ function renderPropertyPage() {
       </div>
       <div style="font-size:0.8rem;font-weight:600;color:#2C5F6E;margin-bottom:0.5rem;">${s.agent}</div>
       ${listingUrl ? `<a href="${listingUrl}" target="_blank" style="display:block;text-align:center;background:#2C5F6E;color:white;padding:0.75rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;margin-top:0.75rem;">View Full Listing ↗</a>` : ''}
-      <a href="tel:" style="display:block;text-align:center;background:#C97B5A;color:white;padding:0.75rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;margin-top:0.5rem;">📞 Schedule a Showing</a>
+      <a href="${buildShowingTextLink(s)}" style="display:block;text-align:center;background:#C97B5A;color:white;padding:0.75rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;margin-top:0.5rem;">💬 Text Me to Schedule</a>
     </div>
   `;
 }
