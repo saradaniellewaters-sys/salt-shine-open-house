@@ -6,7 +6,7 @@
 <title>Salt & Shine Co. — Open House Tools</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600&family=Inter:wght@300;400;500;600&display=swap');
 
   :root {
     --sand: #F0EBE1;
@@ -533,6 +533,382 @@
   body.public-view #panel-property .card-title,
   body.public-view #panel-property .card-sub { display: none !important; }
 
+  /* ── QUIET EDITORIAL DESIGN SYSTEM ── */
+  :root {
+    --sand: #EFEDE8;
+    --dune: #D9DAD6;
+    --ocean: #1A1F23;
+    --seafoam: #48544F;
+    --coral: #E6C48A;
+    --ink: #1A1F23;
+    --mist: #F5F6F4;
+    --white: #FFFFFF;
+    --sage-soft: #E6EFEC;
+    --warm-soft: #F3DED0;
+  }
+
+  body {
+    background: var(--mist);
+    color: var(--ink);
+  }
+
+  nav {
+    height: 72px;
+    padding: 0 3.5rem;
+    background: var(--ink);
+    box-shadow: none;
+  }
+  .brand {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    font-style: normal;
+    letter-spacing: 0.02em;
+    color: var(--mist);
+  }
+  .tab-btn {
+    border-color: var(--seafoam);
+    border-radius: 4px;
+    padding: 0.62rem 1.1rem;
+    color: var(--mist);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+  }
+  .tab-btn:hover, .tab-btn.active {
+    background: var(--coral);
+    border-color: var(--coral);
+    color: var(--ink);
+  }
+
+  .hero {
+    padding: 3.1rem 4.5rem 2.6rem;
+    background: var(--mist);
+    color: var(--ink);
+    border-bottom: 1px solid var(--dune);
+  }
+  .hero h1 {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(2.25rem, 4vw, 3rem);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.08;
+  }
+  .hero p {
+    max-width: 720px;
+    color: var(--seafoam);
+    opacity: 1;
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+  .main {
+    max-width: 1296px;
+    padding: 2.6rem 2rem 4rem;
+  }
+  #panel-setup .main {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(350px, 1fr);
+    gap: 1.4rem 1.75rem;
+    align-items: start;
+  }
+  #panel-setup .main > .card { margin-bottom: 0; }
+  #panel-setup .main > .card:nth-child(3) {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .card {
+    border: 1px solid var(--dune);
+    border-radius: 8px;
+    box-shadow: none;
+    padding: 1.75rem;
+  }
+  .card-title {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 1.65rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .card-sub { color: #676767; }
+
+  label {
+    color: #333;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.75rem;
+  }
+  input, select, textarea, .crm-search {
+    background: white;
+    border-color: var(--dune);
+    border-radius: 8px;
+    color: var(--ink);
+  }
+  input:focus, select:focus, textarea:focus, .crm-search:focus {
+    border-color: var(--seafoam);
+    box-shadow: 0 0 0 3px rgba(72,84,79,0.1);
+  }
+
+  .btn {
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary, .btn-coral {
+    background: var(--ink);
+    color: white;
+  }
+  .btn-primary:hover, .btn-coral:hover {
+    background: var(--seafoam);
+    transform: none;
+  }
+  .btn-outline {
+    background: white;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+  }
+  .btn-outline:hover {
+    background: var(--ink);
+    color: white;
+  }
+
+  .setup-section {
+    background: white;
+    border-radius: 8px;
+    border-color: var(--dune);
+  }
+  .setup-title, .qr-label { color: var(--seafoam); }
+  .qr-box {
+    border-color: var(--dune);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  .url-pill {
+    background: var(--mist);
+    border-color: var(--dune);
+    color: var(--seafoam);
+  }
+  .tip-box {
+    background: var(--sand);
+    border-left-color: var(--coral);
+    border-radius: 0 8px 8px 0;
+  }
+  .tip-box strong { color: var(--ink); }
+  .status-pill { border-radius: 4px; }
+
+  .phone-frame {
+    border-color: var(--dune);
+    border-radius: 12px;
+    box-shadow: none;
+    background: var(--mist);
+  }
+  .guest-photo {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    object-position: center 57%;
+    display: block;
+  }
+  .phone-header {
+    background: white;
+    color: var(--ink);
+    text-align: left;
+    padding: 1.25rem 1.5rem 1.1rem;
+    border-bottom: 1px solid var(--dune);
+  }
+  .phone-header .ph-title {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 2rem;
+    font-weight: 500;
+    font-style: normal;
+  }
+  .phone-header .ph-sub {
+    color: var(--seafoam);
+    opacity: 1;
+  }
+  .phone-body {
+    padding: 1.4rem;
+    background: var(--mist);
+  }
+  .guest-submit {
+    background: var(--ink);
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .success-msg h3 {
+    font-family: 'Bodoni Moda', serif;
+    color: var(--ink);
+  }
+
+  .property-photo {
+    display: block;
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    object-position: center 56%;
+  }
+  .property-summary {
+    padding: 1rem 1.4rem 1.1rem;
+    background: white;
+    border-bottom: 1px solid var(--dune);
+  }
+  .property-kicker {
+    color: var(--seafoam);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .property-price {
+    margin-top: 0.15rem;
+    font-family: 'Bodoni Moda', serif;
+    font-size: 2rem;
+    line-height: 1.12;
+    font-weight: 500;
+  }
+  .property-address {
+    margin-top: 0.2rem;
+    color: var(--seafoam);
+    font-size: 0.84rem;
+  }
+  .property-content {
+    padding: 1rem 1.4rem 1.5rem;
+    background: var(--mist);
+  }
+  .property-specs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+  .property-spec {
+    padding: 0.65rem 0.35rem;
+    background: white;
+    border: 1px solid var(--dune);
+    border-radius: 8px;
+    text-align: center;
+  }
+  .property-spec strong {
+    display: block;
+    font-size: 1rem;
+  }
+  .property-spec span {
+    color: #777;
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .property-heading {
+    margin-top: 1rem;
+    font-family: 'Bodoni Moda', serif;
+    font-size: 1.55rem;
+    font-weight: 500;
+  }
+  .property-message {
+    margin-top: 0.55rem;
+    color: var(--seafoam);
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+  .property-highlights {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    background: white;
+    border: 1px solid var(--dune);
+    border-left: 3px solid var(--coral);
+    border-radius: 8px;
+  }
+  .property-highlights-title {
+    margin-bottom: 0.55rem;
+    color: var(--seafoam);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+  .property-highlight {
+    color: #444;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    margin-top: 0.35rem;
+  }
+  .property-agent {
+    margin-top: 0.8rem;
+    color: var(--seafoam);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+  .property-action {
+    display: block;
+    margin-top: 0.65rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--ink);
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .property-action.secondary {
+    background: white;
+    color: var(--ink);
+  }
+
+  #panel-crm .main { max-width: 1312px; }
+  #panel-crm .card { padding: 0; border: none; background: transparent; }
+  .crm-stats { gap: 0.9rem; }
+  .stat-box {
+    background: white;
+    border-color: var(--dune);
+    border-radius: 8px;
+    text-align: left;
+    padding: 1.25rem 1.4rem;
+  }
+  .stat-num {
+    font-family: 'Bodoni Moda', serif;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .table-wrap {
+    overflow: auto;
+    background: white;
+    border: 1px solid var(--dune);
+    border-radius: 8px;
+  }
+  thead th {
+    background: var(--mist);
+    color: #666;
+  }
+  .badge { border-radius: 4px; }
+  .badge-hot { background: var(--warm-soft); color: #8A4D36; }
+  .badge-warm, .badge-cool { background: var(--sage-soft); color: var(--seafoam); }
+  .badge-pre { background: var(--sand); color: var(--seafoam); }
+  .toast {
+    background: var(--ink);
+    border-radius: 4px;
+    box-shadow: none;
+  }
+
+  @media (max-width: 900px) {
+    #panel-setup .main { display: block; }
+    #panel-setup .main > .card { margin-bottom: 1.25rem; }
+  }
+  @media (max-width: 700px) {
+    nav { padding: 0.75rem 1rem; }
+    .hero { padding: 2rem 1.25rem 1.6rem; }
+    .main { padding: 1.25rem 0.75rem 2rem; }
+    .brand { font-size: 1.1rem; }
+  }
+  body.public-view {
+    background: var(--mist);
+  }
+  body.public-view .main {
+    padding: 0;
+  }
+  body.public-view .phone-frame {
+    max-width: 390px;
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+
 </style>
 </head>
 <body>
@@ -635,6 +1011,11 @@
           <label>Google Apps Script Web App URL</label>
           <input type="url" id="sheets-webhook-url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" oninput="saveSetupState(); updatePreviews(); updateSheetsStatus();">
         </div>
+        <div class="form-group full">
+          <label>Public Website URL for QR Codes</label>
+          <input type="url" id="public-site-url" placeholder="https://your-site.netlify.app/" oninput="saveSetupState(); updatePreviews();">
+          <small style="font-size:0.72rem;color:#777;line-height:1.5;">Use the permanent live URL buyers should open—not localhost, a file, or a temporary deploy preview.</small>
+        </div>
         <div class="form-group">
           <label>Optional Lead Secret</label>
           <input type="text" id="lead-secret" placeholder="Example: saltshine2026" oninput="saveSetupState(); updatePreviews();">
@@ -710,8 +1091,9 @@
   </div>
   <div class="main">
     <div class="phone-frame">
+      <img class="guest-photo" src="https://app.paper.design/file-assets/01KVRAGKD2SXWFKW2X10NZ8B9G/5KN3MYDDZCNMD9PW0HXRZS9582.png" alt="Bright coastal living room">
       <div class="phone-header">
-        <div class="ph-title">Welcome! 👋</div>
+        <div class="ph-title">Welcome in.</div>
         <div class="ph-sub" id="form-address-display">Open House — Fill in setup to personalize</div>
       </div>
       <div class="phone-body">
@@ -772,10 +1154,9 @@
             <label>Notes / Questions for the Agent</label>
             <textarea id="g-notes" placeholder="Anything you'd like to share..."></textarea>
           </div>
-          <button class="guest-submit" onclick="submitGuestForm()">Submit &amp; Sign In ✓</button>
+          <button class="guest-submit" onclick="submitGuestForm()">Submit &amp; Sign In</button>
         </div>
         <div class="success-msg" id="success-msg">
-          <div class="check">🌊</div>
           <h3>You're signed in!</h3>
           <p>Thanks for visiting. We'll be in touch soon with more details about this property.</p>
           <br>
@@ -802,6 +1183,11 @@
         <div class="form-group full">
           <label>Listing URL (Zillow / Realtor.com / MLS)</label>
           <input type="url" id="listing-url" placeholder="https://www.zillow.com/homes/..." oninput="updatePreviews()">
+        </div>
+        <div class="form-group full">
+          <label>Main Property Photo URL (optional fallback)</label>
+          <input type="url" id="property-image-url" placeholder="Automatically pulled from the listing when you save" oninput="updatePreviews()">
+          <small style="font-size:0.72rem;color:#777;line-height:1.5;">Leave blank to pull the listing’s main social-preview image. If Zillow blocks it, paste a direct image URL here.</small>
         </div>
         <div class="form-group full">
           <label>Custom Message to Buyers</label>
@@ -943,7 +1329,9 @@ function getSetup() {
     listingUrl: document.getElementById('listing-url')?.value || '',
     propertyMessage: document.getElementById('prop-message')?.value || '',
     sheetsWebhookUrl: document.getElementById('sheets-webhook-url')?.value || '',
+    publicSiteUrl: document.getElementById('public-site-url')?.value || '',
     leadSecret: document.getElementById('lead-secret')?.value || '',
+    propertyImageUrl: document.getElementById('property-image-url')?.value || '',
     propertyId: document.getElementById('property-id')?.value || ''
   };
 }
@@ -977,7 +1365,9 @@ function normalizeSetupPayload(payload) {
     listingUrl: payload.lu || '',
     propertyMessage: payload.pm || '',
     sheetsWebhookUrl: payload.wh || '',
+    publicSiteUrl: payload.site || '',
     leadSecret: payload.sec || '',
+    propertyImageUrl: payload.img || '',
     propertyId: payload.pid || ''
   };
 }
@@ -1021,7 +1411,9 @@ function applySetup(setup) {
   setInputValue('listing-url', setup.listingUrl || setup.lu);
   setInputValue('prop-message', setup.propertyMessage);
   setInputValue('sheets-webhook-url', setup.sheetsWebhookUrl);
+  setInputValue('public-site-url', setup.publicSiteUrl);
   setInputValue('lead-secret', setup.leadSecret);
+  setInputValue('property-image-url', setup.propertyImageUrl);
   setInputValue('property-id', setup.propertyId || setup.pid);
 }
 
@@ -1034,7 +1426,7 @@ function jsonp(url) {
       delete window[cb];
       script.remove();
       reject(new Error('Request timed out'));
-    }, 12000);
+    }, 25000);
     window[cb] = data => {
       clearTimeout(timeout);
       delete window[cb];
@@ -1081,11 +1473,36 @@ async function loadSetupState() {
   if (setup) applySetup(setup);
 }
 
+function getPublicBaseUrl() {
+  const configuredBase = getSetup().publicSiteUrl.trim();
+  let base = configuredBase || (window.location.origin + window.location.pathname);
+  try {
+    const parsed = new URL(base, window.location.href);
+    parsed.search = '';
+    parsed.hash = '';
+    return parsed.toString();
+  } catch (e) {
+    console.warn('Invalid public site URL', e);
+    return '';
+  }
+}
+
+function hasUsablePublicBase() {
+  const base = getPublicBaseUrl();
+  if (!base) return false;
+  try {
+    const parsed = new URL(base);
+    return /^https?:$/.test(parsed.protocol) && !/^(localhost|127\.0\.0\.1)$/i.test(parsed.hostname);
+  } catch (e) {
+    return false;
+  }
+}
+
 function buildLiveLink(panel) {
-  const base = window.location.origin + window.location.pathname;
+  const base = getPublicBaseUrl();
   const params = new URLSearchParams();
   const s = getSetup();
-  const propertyId = s.propertyId || makePropertyId();
+  const propertyId = s.propertyId;
   if (propertyId) params.set('p', propertyId);
   if (s.sheetsWebhookUrl.trim()) params.set('w', encodeB64(s.sheetsWebhookUrl.trim()));
   params.set('view', panel === 'property' ? 'property' : 'guest');
@@ -1096,6 +1513,24 @@ function updatePreviews() {
   saveSetupState();
   const s = getSetup();
   document.getElementById('form-address-display').textContent = s.address;
+  if (!hasUsablePublicBase()) {
+    document.getElementById('signin-url').textContent = 'Add your permanent Public Website URL to create a working QR code.';
+    document.getElementById('property-url').textContent = 'Add your permanent Public Website URL to create a working QR code.';
+    document.getElementById('qr-signin').innerHTML = '';
+    document.getElementById('qr-property').innerHTML = '';
+    updateSheetsStatus();
+    renderPropertyPage();
+    return;
+  }
+  if (!s.propertyId.trim()) {
+    document.getElementById('signin-url').textContent = 'Save the property to Google Sheets before downloading the QR code.';
+    document.getElementById('property-url').textContent = 'Save the property to Google Sheets before downloading the QR code.';
+    document.getElementById('qr-signin').innerHTML = '';
+    document.getElementById('qr-property').innerHTML = '';
+    updateSheetsStatus();
+    renderPropertyPage();
+    return;
+  }
   const signInUrl = buildLiveLink('guestform');
   const propertyUrl = buildLiveLink('property');
   document.getElementById('signin-url').textContent = signInUrl;
@@ -1109,14 +1544,19 @@ function updatePreviews() {
 async function savePropertyToGoogleSheet() {
   const setup = getSetup();
   if (!setup.sheetsWebhookUrl.trim()) { showToast('Paste your Google Apps Script Web App URL first.'); return; }
+  if (!hasUsablePublicBase()) {
+    showToast('Add your permanent Public Website URL before creating QR codes.');
+    return;
+  }
   if (!setup.address.trim()) { showToast('Add the property address first.'); return; }
   const propertyId = makePropertyId();
-  setInputValue('property-id', propertyId);
-  const payload = { ...getSetup(), propertyId, action: 'saveProperty' };
+  const payload = { ...setup, propertyId, action: 'saveProperty' };
   try {
     const url = `${setup.sheetsWebhookUrl.trim()}?action=saveProperty&payload=${encodeURIComponent(encodePayloadForAppsScript(payload))}`;
     const result = await jsonp(url);
     if (!result || !result.ok) throw new Error((result && result.error) || 'Google Sheet did not confirm the save');
+    setInputValue('property-id', result.propertyId || propertyId);
+    if (result.imageUrl) setInputValue('property-image-url', result.imageUrl);
     saveSetupState();
     updatePreviews();
     showToast('Property saved. New guest-only QR codes are ready.');
@@ -1142,8 +1582,18 @@ async function copyText(text, label) {
     prompt(`Copy this ${label}:`, text);
   }
 }
-function copyGuestLink() { updatePreviews(); copyText(buildLiveLink('guestform'), 'Guest link'); }
-function copyPropertyLink() { updatePreviews(); copyText(buildLiveLink('property'), 'Property link'); }
+function copyGuestLink() {
+  if (!hasUsablePublicBase()) { showToast('Add your permanent Public Website URL first.'); return; }
+  if (!getSetup().propertyId.trim()) { showToast('Save the property to Google Sheets first.'); return; }
+  updatePreviews();
+  copyText(buildLiveLink('guestform'), 'Guest link');
+}
+function copyPropertyLink() {
+  if (!hasUsablePublicBase()) { showToast('Add your permanent Public Website URL first.'); return; }
+  if (!getSetup().propertyId.trim()) { showToast('Save the property to Google Sheets first.'); return; }
+  updatePreviews();
+  copyText(buildLiveLink('property'), 'Property link');
+}
 
 // ─── QR CODES ───
 let qrInstances = {};
@@ -1246,36 +1696,34 @@ function buildShowingTextLink(setup) {
 function renderPropertyPage() {
   const s = getSetup();
   const listingUrl = s.listingUrl || '';
+  const propertyImageUrl = s.propertyImageUrl || 'https://app.paper.design/file-assets/01KVRAGKD2SXWFKW2X10NZ8B9G/2H1TNZGXBJ9ZP6JHH3P0PTM1W4.png';
   const customMsg = s.propertyMessage || 'Welcome! Reach out for a private tour.';
   const highlights = s.highlights.split('\n').filter(h => h.trim()).map(h =>
-    `<div style="display:flex;align-items:flex-start;gap:0.5rem;margin-bottom:0.5rem;font-size:0.83rem;">
-      <span style="color:#C97B5A;margin-top:1px;">✦</span><span>${h.trim()}</span>
-    </div>`
+    `<div class="property-highlight">${escapeHtml(h.trim())}</div>`
   ).join('');
 
   document.getElementById('property-page-preview').innerHTML = `
-    <div style="background:linear-gradient(135deg,#2C5F6E,#5B9BAA);padding:1.5rem;color:white;text-align:center;">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:300;font-style:italic;opacity:0.8;margin-bottom:0.5rem;">Salt &amp; Shine Co.</div>
-      <div style="font-size:1.6rem;font-weight:700;margin-bottom:0.3rem;">${s.price}</div>
-      <div style="font-size:0.8rem;opacity:0.85;">${s.address}</div>
+    <img class="property-photo" src="${escapeHtml(propertyImageUrl)}" alt="Property exterior" onerror="this.onerror=null;this.src='https://app.paper.design/file-assets/01KVRAGKD2SXWFKW2X10NZ8B9G/2H1TNZGXBJ9ZP6JHH3P0PTM1W4.png';">
+    <div class="property-summary">
+      <div class="property-kicker">Salt &amp; Shine Co.</div>
+      <div class="property-price">${escapeHtml(s.price)}</div>
+      <div class="property-address">${escapeHtml(s.address)}</div>
     </div>
-    <div style="padding:1.25rem;background:white;">
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:1.25rem;text-align:center;">
-        ${[['🛏','Beds',s.beds],['🛁','Baths',s.baths],['📐','Sq Ft',s.sqft],['📅','Built',s.year]].map(([icon,lbl,val]) =>
-          `<div style="background:#F7F4F0;border-radius:8px;padding:0.6rem 0.3rem;">
-            <div style="font-size:1.1rem;">${icon}</div>
-            <div style="font-size:0.9rem;font-weight:600;color:#2C5F6E;">${val}</div>
-            <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:#999;">${lbl}</div>
+    <div class="property-content">
+      <div class="property-specs">
+        ${[['Beds',s.beds],['Baths',s.baths],['Sq Ft',s.sqft],['Built',s.year]].map(([lbl,val]) =>
+          `<div class="property-spec">
+            <strong>${escapeHtml(val)}</strong>
+            <span>${lbl}</span>
           </div>`
         ).join('')}
       </div>
-      ${highlights ? `<div style="margin-bottom:1rem;">${highlights}</div>` : ''}
-      <div style="background:#F0EBE1;border-radius:8px;padding:0.9rem;margin-bottom:1rem;font-size:0.82rem;line-height:1.6;color:#444;border-left:3px solid #C97B5A;">
-        ${customMsg}
-      </div>
-      <div style="font-size:0.8rem;font-weight:600;color:#2C5F6E;margin-bottom:0.5rem;">${s.agent}</div>
-      ${listingUrl ? `<a href="${listingUrl}" target="_blank" style="display:block;text-align:center;background:#2C5F6E;color:white;padding:0.75rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;margin-top:0.75rem;">View Full Listing ↗</a>` : ''}
-      <a href="${buildShowingTextLink(s)}" style="display:block;text-align:center;background:#C97B5A;color:white;padding:0.75rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;margin-top:0.5rem;">💬 Text Me to Schedule</a>
+      <div class="property-heading">A bright coastal retreat</div>
+      <div class="property-message">${escapeHtml(customMsg)}</div>
+      ${highlights ? `<div class="property-highlights"><div class="property-highlights-title">PROPERTY HIGHLIGHTS</div>${highlights}</div>` : ''}
+      ${listingUrl ? `<a href="${escapeHtml(listingUrl)}" target="_blank" rel="noopener" class="property-action">VIEW FULL LISTING</a>` : ''}
+      <a href="${buildShowingTextLink(s)}" class="property-action secondary">TEXT SARA TO SCHEDULE</a>
+      <div class="property-agent">${escapeHtml(s.agent)}</div>
     </div>
   `;
 }

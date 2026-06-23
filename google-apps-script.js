@@ -20,7 +20,7 @@ const LEAD_HEADERS = [
 const PROPERTY_HEADERS = [
   'Updated At', 'Property ID', 'Address', 'Price', 'Open House Date', 'Beds', 'Baths',
   'Sq Ft', 'Year Built', 'Highlights', 'Agent', 'Agent Phone', 'Booking Link',
-  'Showing Text Message', 'Listing URL', 'Property Message', 'Lead Secret'
+  'Showing Text Message', 'Listing URL', 'Property Message', 'Lead Secret', 'Main Image URL'
 ];
 
 function setupSheet() {
@@ -78,6 +78,17 @@ function doGet(e) {
       return json_(getProperty_(params.propertyId || ''), callback);
     }
 
+    if (action === 'resolveListingImage') {
+      return json_({
+        ok: true,
+        imageUrl: resolveListingImage_(params.listingUrl || '')
+      }, callback);
+    }
+
+    if (action === 'listLeads') {
+      return json_(listLeads_(params.propertyId || ''), callback);
+    }
+
     return json_({ ok: true, message: 'Salt & Shine endpoint is live.' }, callback);
   } catch (err) {
     console.error(err);
@@ -88,6 +99,7 @@ function doGet(e) {
 function saveProperty_(data) {
   const propertyId = clean_(data.propertyId || data.id);
   if (!propertyId) return { ok: false, error: 'Missing property ID' };
+  const imageUrl = clean_(data.propertyImageUrl || data.imageUrl) || resolveListingImage_(data.listingUrl);
 
   const sheet = getOrCreateSheet_(PROPERTIES_SHEET_NAME);
   ensureHeaders_(sheet, PROPERTY_HEADERS);
@@ -96,7 +108,8 @@ function saveProperty_(data) {
     new Date(), propertyId, clean_(data.address), clean_(data.price), clean_(data.date),
     clean_(data.beds), clean_(data.baths), clean_(data.sqft), clean_(data.year),
     clean_(data.highlights), clean_(data.agent), clean_(data.agentPhone), clean_(data.bookingLink),
-    clean_(data.showingText), clean_(data.listingUrl), clean_(data.propertyMessage), clean_(data.leadSecret)
+    clean_(data.showingText), clean_(data.listingUrl), clean_(data.propertyMessage), clean_(data.leadSecret),
+    imageUrl
   ];
 
   const existingRow = findPropertyRow_(sheet, propertyId);
@@ -105,7 +118,7 @@ function saveProperty_(data) {
   } else {
     sheet.appendRow(row);
   }
-  return { ok: true, propertyId };
+  return { ok: true, propertyId, imageUrl };
 }
 
 function getProperty_(propertyId) {
@@ -122,9 +135,98 @@ function getProperty_(propertyId) {
       propertyId: row[1], address: row[2], price: row[3], date: row[4], beds: row[5], baths: row[6],
       sqft: row[7], year: row[8], highlights: row[9], agent: row[10], agentPhone: row[11],
       bookingLink: row[12], showingText: row[13], listingUrl: row[14], propertyMessage: row[15],
-      leadSecret: row[16]
+      leadSecret: row[16], propertyImageUrl: row[17]
     }
   };
+}
+
+function resolveListingImage_(listingUrl) {
+  listingUrl = clean_(listingUrl);
+  if (!listingUrl) return '';
+
+  const urlMatch = listingUrl.match(/^https?:\/\/([^/:?#]+)/i);
+  if (!urlMatch) return '';
+  const host = urlMatch[1].toLowerCase();
+  if (!host || host === 'localhost' || /^127\./.test(host) || /^10\./.test(host) ||
+      /^192\.168\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host)) return '';
+
+  try {
+    const response = UrlFetchApp.fetch(listingUrl, {
+      followRedirects: true,
+      muteHttpExceptions: true,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; SaltShineOpenHouse/1.0)',
+        'Accept': 'text/html,application/xhtml+xml'
+      }
+    });
+    if (response.getResponseCode() < 200 || response.getResponseCode() >= 400) return '';
+    const html = response.getContentText();
+    const patterns = [
+      /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/i,
+      /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/i,
+      /<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["']/i
+    ];
+    for (let i = 0; i < patterns.length; i++) {
+      const match = html.match(patterns[i]);
+      if (match && match[1]) return decodeHtmlEntities_(match[1]);
+    }
+  } catch (err) {
+    console.warn('Could not resolve listing image: ' + err);
+  }
+  return '';
+}
+
+function decodeHtmlEntities_(value) {
+  return clean_(value)
+    .replace(/&amp;/g, '&')
+    .replace(/&#x2F;/gi, '/')
+    .replace(/&#47;/g, '/')
+    .replace(/&quot;/g, '"');
+}
+
+function listLeads_(propertyId) {
+  propertyId = clean_(propertyId);
+  const sheet = getOrCreateSheet_(LEADS_SHEET_NAME);
+  ensureHeaders_(sheet, LEAD_HEADERS);
+  const last = sheet.getLastRow();
+  if (last < 2) return { ok: true, leads: [] };
+
+  const rows = sheet.getRange(2, 1, last - 1, LEAD_HEADERS.length).getValues();
+  const leads = rows.map(row => ({
+    receivedAt: serializeDate_(row[0]),
+    propertyId: clean_(row[1]),
+    name: clean_(row[2]),
+    phone: clean_(row[3]),
+    email: clean_(row[4]),
+    timeline: clean_(row[5]),
+    financing: clean_(row[6]),
+    priceRange: clean_(row[7]),
+    hasAgent: clean_(row[8]),
+    notes: clean_(row[9]),
+    property: clean_(row[10]),
+    leadSource: clean_(row[11]),
+    submittedAt: serializeDate_(row[12]),
+    pageUrl: clean_(row[13]),
+    userAgent: clean_(row[14]),
+    date: row[12] ? formatDate_(row[12]) : formatDate_(row[0])
+  })).filter(lead => !propertyId || lead.propertyId === propertyId);
+
+  leads.reverse();
+  return { ok: true, leads };
+}
+
+function serializeDate_(value) {
+  if (Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value)) return value.toISOString();
+  return clean_(value);
+}
+
+function formatDate_(value) {
+  if (Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value)) {
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'M/d/yyyy');
+  }
+  return clean_(value);
 }
 
 function findPropertyRow_(sheet, propertyId) {
