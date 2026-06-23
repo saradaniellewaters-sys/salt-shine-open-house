@@ -32,6 +32,13 @@ This version posts every guest sign-in to Google Sheets using a Google Apps Scri
 14. Click **Send Test Lead** and confirm a row appears in the Sheet.
 15. Fill in the property details, then download or copy your new QR links.
 
+## QR links and listing photos
+
+- Set **Public Website URL for QR Codes** to the permanent live Netlify or website URL. Never generate printed QR codes from `localhost`, a downloaded HTML file, or a temporary deploy-preview URL.
+- Add the Zillow listing URL under **Property Info**, then click **Save Property + Create Short QR**. The Apps Script will try to save the listing's main `og:image` as the property hero image.
+- Zillow may occasionally block automated image retrieval. If that happens, paste a direct image URL into **Main Property Photo URL** and save again.
+- After replacing `google-apps-script.js`, redeploy the Apps Script Web App as a new version before generating fresh QR codes.
+
 ## Important live-use note
 
 The generated QR URLs now include your property details and Google Sheets endpoint, so buyers who scan the QR from their own phones will see the correct guest form/property info and submissions will go to your Sheet.
