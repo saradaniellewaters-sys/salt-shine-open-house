@@ -1011,6 +1011,11 @@
           <label>Google Apps Script Web App URL</label>
           <input type="url" id="sheets-webhook-url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" oninput="saveSetupState(); updatePreviews(); updateSheetsStatus();">
         </div>
+        <div class="form-group full">
+          <label>Public Website URL for QR Codes</label>
+          <input type="url" id="public-site-url" placeholder="https://your-site.netlify.app/" oninput="saveSetupState(); updatePreviews();">
+          <small style="font-size:0.72rem;color:#777;line-height:1.5;">Use the permanent live URL buyers should open—not localhost, a file, or a temporary deploy preview.</small>
+        </div>
         <div class="form-group">
           <label>Optional Lead Secret</label>
           <input type="text" id="lead-secret" placeholder="Example: saltshine2026" oninput="saveSetupState(); updatePreviews();">
@@ -1180,6 +1185,11 @@
           <input type="url" id="listing-url" placeholder="https://www.zillow.com/homes/..." oninput="updatePreviews()">
         </div>
         <div class="form-group full">
+          <label>Main Property Photo URL (optional fallback)</label>
+          <input type="url" id="property-image-url" placeholder="Automatically pulled from the listing when you save" oninput="updatePreviews()">
+          <small style="font-size:0.72rem;color:#777;line-height:1.5;">Leave blank to pull the listing’s main social-preview image. If Zillow blocks it, paste a direct image URL here.</small>
+        </div>
+        <div class="form-group full">
           <label>Custom Message to Buyers</label>
           <textarea id="prop-message" placeholder="Welcome! This stunning coastal home won't last long. Text or call me for a private showing..." rows="3" oninput="updatePreviews()"></textarea>
         </div>
@@ -1319,7 +1329,9 @@ function getSetup() {
     listingUrl: document.getElementById('listing-url')?.value || '',
     propertyMessage: document.getElementById('prop-message')?.value || '',
     sheetsWebhookUrl: document.getElementById('sheets-webhook-url')?.value || '',
+    publicSiteUrl: document.getElementById('public-site-url')?.value || '',
     leadSecret: document.getElementById('lead-secret')?.value || '',
+    propertyImageUrl: document.getElementById('property-image-url')?.value || '',
     propertyId: document.getElementById('property-id')?.value || ''
   };
 }
@@ -1353,7 +1365,9 @@ function normalizeSetupPayload(payload) {
     listingUrl: payload.lu || '',
     propertyMessage: payload.pm || '',
     sheetsWebhookUrl: payload.wh || '',
+    publicSiteUrl: payload.site || '',
     leadSecret: payload.sec || '',
+    propertyImageUrl: payload.img || '',
     propertyId: payload.pid || ''
   };
 }
@@ -1397,7 +1411,9 @@ function applySetup(setup) {
   setInputValue('listing-url', setup.listingUrl || setup.lu);
   setInputValue('prop-message', setup.propertyMessage);
   setInputValue('sheets-webhook-url', setup.sheetsWebhookUrl);
+  setInputValue('public-site-url', setup.publicSiteUrl);
   setInputValue('lead-secret', setup.leadSecret);
+  setInputValue('property-image-url', setup.propertyImageUrl);
   setInputValue('property-id', setup.propertyId || setup.pid);
 }
 
@@ -1410,7 +1426,7 @@ function jsonp(url) {
       delete window[cb];
       script.remove();
       reject(new Error('Request timed out'));
-    }, 12000);
+    }, 25000);
     window[cb] = data => {
       clearTimeout(timeout);
       delete window[cb];
@@ -1457,11 +1473,36 @@ async function loadSetupState() {
   if (setup) applySetup(setup);
 }
 
+function getPublicBaseUrl() {
+  const configuredBase = getSetup().publicSiteUrl.trim();
+  let base = configuredBase || (window.location.origin + window.location.pathname);
+  try {
+    const parsed = new URL(base, window.location.href);
+    parsed.search = '';
+    parsed.hash = '';
+    return parsed.toString();
+  } catch (e) {
+    console.warn('Invalid public site URL', e);
+    return '';
+  }
+}
+
+function hasUsablePublicBase() {
+  const base = getPublicBaseUrl();
+  if (!base) return false;
+  try {
+    const parsed = new URL(base);
+    return /^https?:$/.test(parsed.protocol) && !/^(localhost|127\.0\.0\.1)$/i.test(parsed.hostname);
+  } catch (e) {
+    return false;
+  }
+}
+
 function buildLiveLink(panel) {
-  const base = window.location.origin + window.location.pathname;
+  const base = getPublicBaseUrl();
   const params = new URLSearchParams();
   const s = getSetup();
-  const propertyId = s.propertyId || makePropertyId();
+  const propertyId = s.propertyId;
   if (propertyId) params.set('p', propertyId);
   if (s.sheetsWebhookUrl.trim()) params.set('w', encodeB64(s.sheetsWebhookUrl.trim()));
   params.set('view', panel === 'property' ? 'property' : 'guest');
@@ -1472,6 +1513,24 @@ function updatePreviews() {
   saveSetupState();
   const s = getSetup();
   document.getElementById('form-address-display').textContent = s.address;
+  if (!hasUsablePublicBase()) {
+    document.getElementById('signin-url').textContent = 'Add your permanent Public Website URL to create a working QR code.';
+    document.getElementById('property-url').textContent = 'Add your permanent Public Website URL to create a working QR code.';
+    document.getElementById('qr-signin').innerHTML = '';
+    document.getElementById('qr-property').innerHTML = '';
+    updateSheetsStatus();
+    renderPropertyPage();
+    return;
+  }
+  if (!s.propertyId.trim()) {
+    document.getElementById('signin-url').textContent = 'Save the property to Google Sheets before downloading the QR code.';
+    document.getElementById('property-url').textContent = 'Save the property to Google Sheets before downloading the QR code.';
+    document.getElementById('qr-signin').innerHTML = '';
+    document.getElementById('qr-property').innerHTML = '';
+    updateSheetsStatus();
+    renderPropertyPage();
+    return;
+  }
   const signInUrl = buildLiveLink('guestform');
   const propertyUrl = buildLiveLink('property');
   document.getElementById('signin-url').textContent = signInUrl;
@@ -1485,14 +1544,19 @@ function updatePreviews() {
 async function savePropertyToGoogleSheet() {
   const setup = getSetup();
   if (!setup.sheetsWebhookUrl.trim()) { showToast('Paste your Google Apps Script Web App URL first.'); return; }
+  if (!hasUsablePublicBase()) {
+    showToast('Add your permanent Public Website URL before creating QR codes.');
+    return;
+  }
   if (!setup.address.trim()) { showToast('Add the property address first.'); return; }
   const propertyId = makePropertyId();
-  setInputValue('property-id', propertyId);
-  const payload = { ...getSetup(), propertyId, action: 'saveProperty' };
+  const payload = { ...setup, propertyId, action: 'saveProperty' };
   try {
     const url = `${setup.sheetsWebhookUrl.trim()}?action=saveProperty&payload=${encodeURIComponent(encodePayloadForAppsScript(payload))}`;
     const result = await jsonp(url);
     if (!result || !result.ok) throw new Error((result && result.error) || 'Google Sheet did not confirm the save');
+    setInputValue('property-id', result.propertyId || propertyId);
+    if (result.imageUrl) setInputValue('property-image-url', result.imageUrl);
     saveSetupState();
     updatePreviews();
     showToast('Property saved. New guest-only QR codes are ready.');
@@ -1518,8 +1582,18 @@ async function copyText(text, label) {
     prompt(`Copy this ${label}:`, text);
   }
 }
-function copyGuestLink() { updatePreviews(); copyText(buildLiveLink('guestform'), 'Guest link'); }
-function copyPropertyLink() { updatePreviews(); copyText(buildLiveLink('property'), 'Property link'); }
+function copyGuestLink() {
+  if (!hasUsablePublicBase()) { showToast('Add your permanent Public Website URL first.'); return; }
+  if (!getSetup().propertyId.trim()) { showToast('Save the property to Google Sheets first.'); return; }
+  updatePreviews();
+  copyText(buildLiveLink('guestform'), 'Guest link');
+}
+function copyPropertyLink() {
+  if (!hasUsablePublicBase()) { showToast('Add your permanent Public Website URL first.'); return; }
+  if (!getSetup().propertyId.trim()) { showToast('Save the property to Google Sheets first.'); return; }
+  updatePreviews();
+  copyText(buildLiveLink('property'), 'Property link');
+}
 
 // ─── QR CODES ───
 let qrInstances = {};
@@ -1622,13 +1696,14 @@ function buildShowingTextLink(setup) {
 function renderPropertyPage() {
   const s = getSetup();
   const listingUrl = s.listingUrl || '';
+  const propertyImageUrl = s.propertyImageUrl || 'https://app.paper.design/file-assets/01KVRAGKD2SXWFKW2X10NZ8B9G/2H1TNZGXBJ9ZP6JHH3P0PTM1W4.png';
   const customMsg = s.propertyMessage || 'Welcome! Reach out for a private tour.';
   const highlights = s.highlights.split('\n').filter(h => h.trim()).map(h =>
     `<div class="property-highlight">${escapeHtml(h.trim())}</div>`
   ).join('');
 
   document.getElementById('property-page-preview').innerHTML = `
-    <img class="property-photo" src="https://app.paper.design/file-assets/01KVRAGKD2SXWFKW2X10NZ8B9G/2H1TNZGXBJ9ZP6JHH3P0PTM1W4.png" alt="Coastal home exterior">
+    <img class="property-photo" src="${escapeHtml(propertyImageUrl)}" alt="Property exterior" onerror="this.onerror=null;this.src='https://app.paper.design/file-assets/01KVRAGKD2SXWFKW2X10NZ8B9G/2H1TNZGXBJ9ZP6JHH3P0PTM1W4.png';">
     <div class="property-summary">
       <div class="property-kicker">Salt &amp; Shine Co.</div>
       <div class="property-price">${escapeHtml(s.price)}</div>
